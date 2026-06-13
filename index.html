@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SubLog — Submission &amp; Query Tracker for Writers</title>
+<meta name="description" content="A calm, private submission tracker for writers. Log where your poems, stories, and queries are out, track simultaneous submissions, response times, and acceptance rates. 100% offline, no account.">
+<meta name="theme-color" content="#f7f3ec">
+<link rel="canonical" href="https://alexeysamosadov.github.io/sublog/">
+<meta property="og:title" content="SubLog — Submission &amp; Query Tracker for Writers">
+<meta property="og:description" content="Track simultaneous submissions, response times, and acceptance rates. Private, offline, no account.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://alexeysamosadov.github.io/sublog/">
+<style>
+  :root{
+    --paper:#f7f3ec; --card:#fffdf8; --ink:#2c2a26; --muted:#7c7568;
+    --line:#e4dccd; --accent:#7a5c3e; --accent-soft:#efe6d6;
+    --pend:#9a7b3f; --pend-bg:#f5ecd8; --rej:#a05a52; --rej-bg:#f6e4e1;
+    --acc:#4e7a51; --acc-bg:#e2efe2; --with:#6f6a62; --with-bg:#ece8e1;
+    --shadow:0 1px 3px rgba(60,50,30,.08),0 6px 18px rgba(60,50,30,.05);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    background:var(--paper); color:var(--ink); line-height:1.5;
+    -webkit-font-smoothing:antialiased; padding-bottom:64px;
+  }
+  a{color:var(--accent)}
+  header.top{
+    position:sticky; top:0; z-index:30; background:rgba(247,243,236,.92);
+    backdrop-filter:saturate(1.4) blur(8px); border-bottom:1px solid var(--line);
+  }
+  .top-in{max-width:840px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+  .brand{font-weight:700;font-size:20px;letter-spacing:.2px;display:flex;align-items:center;gap:8px;cursor:pointer;background:none;border:0;color:var(--ink);font-family:inherit}
+  .brand .mark{font-size:22px}
+  .brand small{font-weight:400;color:var(--muted);font-size:12px;letter-spacing:.5px}
+  .spacer{flex:1}
+  .pill{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--muted);background:var(--card)}
+  .pill.pro{color:var(--accent);border-color:var(--accent-soft);background:var(--accent-soft);font-weight:600}
+  .wrap{max-width:840px;margin:0 auto;padding:18px 16px 40px}
+  button,input,select,textarea{font-family:inherit;font-size:15px}
+  button{cursor:pointer}
+  .btn{background:var(--accent);color:#fff;border:0;border-radius:9px;padding:9px 15px;font-weight:600;box-shadow:var(--shadow)}
+  .btn:hover{filter:brightness(1.06)}
+  .btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+  .btn.sm{padding:6px 10px;font-size:13px;border-radius:7px}
+  .btn.link{background:none;border:0;color:var(--accent);box-shadow:none;padding:4px 6px;text-decoration:underline;font-weight:600}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:6px 0 22px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 14px;box-shadow:var(--shadow)}
+  .stat .n{font-size:26px;font-weight:700;line-height:1.1}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:3px}
+  .stat .sub{font-size:11px;color:var(--muted);margin-top:5px;border-top:1px dashed var(--line);padding-top:5px}
+  h1.page{font-size:22px;margin:4px 0 2px;font-weight:700}
+  .sec-head{display:flex;align-items:baseline;gap:10px;margin:24px 0 10px}
+  .sec-head h2{font-size:16px;margin:0;font-weight:700;letter-spacing:.3px}
+  .sec-head .c{color:var(--muted);font-size:13px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+  .work{padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;border-bottom:1px solid var(--line)}
+  .work:last-child{border-bottom:0}
+  .work:hover{background:#fffaf0}
+  .work .t{font-weight:600;font-size:16px}
+  .work .meta{font-size:12px;color:var(--muted);margin-top:2px}
+  .work .counts{margin-left:auto;text-align:right;flex-shrink:0}
+  .work .out{font-weight:700;font-size:18px;color:var(--accent)}
+  .work .out small{font-weight:400;color:var(--muted);font-size:11px}
+  .empty{padding:34px 18px;text-align:center;color:var(--muted)}
+  .empty .big{font-size:34px;margin-bottom:6px;opacity:.7}
+  .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;letter-spacing:.3px;vertical-align:middle}
+  .b-Pending{color:var(--pend);background:var(--pend-bg)}
+  .b-Rejected{color:var(--rej);background:var(--rej-bg)}
+  .b-Accepted{color:var(--acc);background:var(--acc-bg)}
+  .b-Withdrawn{color:var(--with);background:var(--with-bg)}
+  .sub{padding:13px 16px;border-bottom:1px solid var(--line)}
+  .sub:last-child{border-bottom:0}
+  .sub .l1{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .sub .mk{font-weight:600;font-size:15px}
+  .sub .l2{font-size:12px;color:var(--muted);margin-top:5px;display:flex;gap:14px;flex-wrap:wrap}
+  .sub .note{font-size:13px;color:var(--ink);margin-top:7px;background:#fbf6ec;border-left:3px solid var(--accent-soft);padding:6px 9px;border-radius:0 6px 6px 0;white-space:pre-wrap}
+  .sub .acts{margin-top:9px;display:flex;gap:6px;flex-wrap:wrap}
+  .tag{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 7px}
+  /* forms / modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(44,42,38,.42);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:24px 14px;overflow:auto}
+  .modal{background:var(--card);border-radius:14px;max-width:520px;width:100%;box-shadow:0 20px 60px rgba(40,30,10,.3);border:1px solid var(--line);margin:auto 0}
+  .modal h3{margin:0;padding:16px 18px;font-size:18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .modal .body{padding:16px 18px}
+  .modal .foot{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end}
+  label{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:11px 0 4px;letter-spacing:.3px}
+  input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#fffdf8;color:var(--ink)}
+  input:focus,select,textarea:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+  textarea{resize:vertical;min-height:54px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .check{display:flex;align-items:center;gap:8px;margin-top:12px}
+  .check input{width:auto}
+  .x{background:none;border:0;color:var(--muted);font-size:22px;line-height:1;margin-left:auto;cursor:pointer}
+  .crumb{font-size:13px;color:var(--muted);margin-bottom:6px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+  .pro-note{font-size:12px;color:var(--muted);margin-top:4px}
+  .lock{font-size:11px;background:var(--accent-soft);color:var(--accent);border-radius:6px;padding:1px 6px;font-weight:700;letter-spacing:.3px}
+  .nudge{padding:11px 14px;border-bottom:1px solid var(--line);font-size:14px;display:flex;justify-content:space-between;gap:10px}
+  .nudge:last-child{border-bottom:0}
+  .nudge .d{color:var(--rej);font-weight:700}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;word-break:break-all}
+  details.have{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+  details.have summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:14px}
+  .feat{margin:10px 0 12px;padding-left:0;list-style:none}
+  .feat li{padding:5px 0 5px 26px;position:relative;font-size:14px}
+  .feat li:before{content:"✦";position:absolute;left:4px;color:var(--accent)}
+  .msg-ok{color:var(--acc);font-size:13px;font-weight:600;margin-top:8px}
+  .msg-err{color:var(--rej);font-size:13px;font-weight:600;margin-top:8px}
+  .copybar{display:flex;gap:8px;align-items:stretch}
+  .copybar input{flex:1}
+  footer.foot{max-width:840px;margin:30px auto 0;padding:18px 16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  footer.foot a{color:var(--muted)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .seg button{background:var(--card);border:0;padding:6px 11px;font-size:13px;color:var(--muted);border-right:1px solid var(--line)}
+  .seg button:last-child{border-right:0}
+  .seg button.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+  @media(max-width:620px){
+    .stats{grid-template-columns:1fr 1fr}
+    .grid2{grid-template-columns:1fr}
+    .brand small{display:none}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <button class="brand" onclick="goHome()"><span class="mark">✒️</span> SubLog <small>submission &amp; query tracker</small></button>
+    <span class="spacer"></span>
+    <span id="proPill" class="pill" onclick="openLicense()" style="cursor:pointer">Free</span>
+  </div>
+</header>
+
+<main class="wrap" id="app"></main>
+
+<footer class="foot">
+  <span>SubLog — your writing, your data. 100% offline; everything stays in this browser.</span>
+  <span class="spacer" style="flex:1"></span>
+  <a href="./writing-submission-tracker.html">About</a>
+  <a href="https://github.com/AlexeySamosadov/sublog/issues/new" target="_blank" rel="noopener">Feedback</a>
+</footer>
+
+<script>
+/* ===================== License (verbatim block) ===================== */
+const PUBLIC_JWK={"kty":"EC","x":"RwR0AwPMJUq5CtBs0r5CGJVi4PGoovOuQtYQjiz9eOY","y":"uKfPcosdvIwucKaDrG9jgXdHUB2reVvHbctFaVZ6rSo","crv":"P-256"};
+const PAY = { wallet:"0xe339997037C7e1C81829fA3e110d3e82B4bDd48E", chain:"Base", token:"USDC", price:"9", contact:"https://github.com/AlexeySamosadov/sublog/issues/new" };
+let pro=false;
+function fromB(s){s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";const b=atob(s);const a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
+async function verifyLicense(str){try{const[p,sg]=str.trim().split(".");if(!p||!sg)return null;const k=await crypto.subtle.importKey("jwk",PUBLIC_JWK,{name:"ECDSA",namedCurve:"P-256"},false,["verify"]);if(!await crypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},k,fromB(sg),fromB(p)))return null;const pl=JSON.parse(new TextDecoder().decode(fromB(p)));if(pl.exp&&Math.floor(Date.now()/1000)>pl.exp)return{expired:true};return pl;}catch(e){return null;}}
+async function applyLicense(str,silent){const pl=await verifyLicense(str);if(pl&&!pl.expired&&pl.plan==="pro"){pro=true;localStorage.setItem("sublog_license",str);if(typeof render==="function")render();if(!silent){const o=document.querySelector("#licOk");if(o)o.textContent="Unlocked — thank you";setTimeout(()=>{const b=document.querySelector("#licBg");if(b)b.remove();},800);}return true;}if(!silent){const e=document.querySelector("#licErr");if(e)e.textContent=pl&&pl.expired?"License expired.":"Invalid key.";}return false;}
+
+/* ===================== Data layer ===================== */
+const KEY="sublog_data_v1";
+let state={works:[], nudgeDays:30};
+function load(){try{const r=localStorage.getItem(KEY);if(r)state=Object.assign(state,JSON.parse(r));}catch(e){}}
+function save(){localStorage.setItem(KEY,JSON.stringify(state));}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function esc(s){return (s==null?"":String(s)).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+let view={name:"home", workId:null};
+
+/* ===================== Stats helpers ===================== */
+function allSubs(){return state.works.flatMap(w=>w.subs.map(s=>({...s,_work:w})));}
+function daysBetween(a,b){return Math.round((new Date(b)-new Date(a))/86400000);}
+function today(){return new Date().toISOString().slice(0,10);}
+function isResponded(s){return s.status==="Rejected"||s.status==="Accepted";}
+function respDays(s){if(!isResponded(s)||!s.respDate)return null;const d=daysBetween(s.date,s.respDate);return d<0?0:d;}
+function pendingDays(s){return daysBetween(s.date,today());}
+
+function dashStats(){
+  const subs=allSubs();
+  const out=subs.filter(s=>s.status==="Pending");
+  const responded=subs.filter(isResponded);
+  const accepted=subs.filter(s=>s.status==="Accepted");
+  const rates=responded.length?Math.round(accepted.length/responded.length*100):null;
+  const rd=responded.map(respDays).filter(d=>d!=null);
+  const avg=rd.length?Math.round(rd.reduce((a,b)=>a+b,0)/rd.length):null;
+  let longest=null;
+  out.forEach(s=>{const d=pendingDays(s);if(!longest||d>longest.d)longest={d,s};});
+  return {outN:out.length, rate:rates, respondedN:responded.length, acceptedN:accepted.length, avg, longest};
+}
+
+/* per-market response stats (PRO) */
+function marketStats(){
+  const m={};
+  allSubs().forEach(s=>{
+    const name=(s.market||"—").trim()||"—";
+    m[name]=m[name]||{name,total:0,responded:0,accepted:0,rejected:0,pending:0,respDays:[]};
+    const e=m[name]; e.total++;
+    if(s.status==="Pending")e.pending++;
+    if(s.status==="Accepted")e.accepted++;
+    if(s.status==="Rejected")e.rejected++;
+    const rd=respDays(s); if(rd!=null)e.respDays.push(rd);
+  });
+  return Object.values(m).map(e=>({...e,
+    avg:e.respDays.length?Math.round(e.respDays.reduce((a,b)=>a+b,0)/e.respDays.length):null,
+    respondedN:e.accepted+e.rejected
+  })).sort((a,b)=>b.total-a.total);
+}
+
+/* ===================== Render ===================== */
+const app=()=>document.getElementById("app");
+
+function render(){
+  document.getElementById("proPill").className="pill"+(pro?" pro":"");
+  document.getElementById("proPill").textContent=pro?"Pro ✓":"Free";
+  if(view.name==="work"){
+    const w=state.works.find(x=>x.id===view.workId);
+    if(!w){view={name:"home"};return render();}
+    renderWork(w);
+  } else {
+    renderHome();
+  }
+}
+function goHome(){view={name:"home"};render();}
+
+function statCard(n,l,sub){
+  return `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div>${sub?`<div class="sub">${sub}</div>`:""}</div>`;
+}
+
+function renderHome(){
+  const st=dashStats();
+  const works=state.works.slice().sort((a,b)=>{
+    const ao=a.subs.filter(s=>s.status==="Pending").length, bo=b.subs.filter(s=>s.status==="Pending").length;
+    if(bo!==ao)return bo-ao; return (b.created||0)-(a.created||0);
+  });
+  let h="";
+  h+=`<h1 class="page">Dashboard</h1>`;
+  h+=`<div class="stats">
+    ${statCard(st.outN,"Currently out", st.outN?"submissions pending a reply":"nothing pending")}
+    ${statCard(st.rate==null?"—":st.rate+"%","Acceptance rate", st.respondedN?`${st.acceptedN} of ${st.respondedN} responded`:"no replies yet")}
+    ${statCard(st.avg==null?"—":st.avg,"Avg response (days)", st.respondedN?"across responded subs":"—")}
+    ${statCard(st.longest?st.longest.d+"d":"—","Longest pending", st.longest?esc(st.longest.s.market||"a market"):"—")}
+  </div>`;
+
+  // Nudge list (Pro)
+  h+=renderNudge();
+
+  h+=`<div class="sec-head"><h2>Your works</h2><span class="c">${state.works.length} total</span><span class="spacer" style="flex:1"></span><button class="btn sm" onclick="openWork()">+ New work</button></div>`;
+  if(!state.works.length){
+    h+=`<div class="card empty"><div class="big">✒️</div><div><b>Start your submission log.</b></div><div style="margin-top:6px">Add a poem, story, query or essay — then track where you've sent it.</div><div style="margin-top:14px"><button class="btn" onclick="openWork()">Add your first work</button></div></div>`;
+  } else {
+    h+=`<div class="card">`;
+    works.forEach(w=>{
+      const out=w.subs.filter(s=>s.status==="Pending").length;
+      const acc=w.subs.filter(s=>s.status==="Accepted").length;
+      h+=`<div class="work" onclick="openWorkView('${w.id}')">
+        <div>
+          <div class="t">${esc(w.title)} ${acc?'<span class="badge b-Accepted">Accepted</span>':""}</div>
+          <div class="meta">${esc(w.type)}${w.words?" · "+Number(w.words).toLocaleString()+" words":""} · ${w.subs.length} submission${w.subs.length===1?"":"s"}</div>
+        </div>
+        <div class="counts"><div class="out">${out}<small> out</small></div></div>
+      </div>`;
+    });
+    h+=`</div>`;
+  }
+
+  // CSV export (Pro)
+  h+=`<div class="sec-head"><h2>Export &amp; tools</h2></div>
+    <div class="card" style="padding:14px 16px">
+      <div class="row" style="justify-content:space-between">
+        <div><b>Export full submission log (CSV)</b><div class="pro-note">Every work &amp; submission, ready for a spreadsheet or backup.</div></div>
+        <button class="btn ghost sm" onclick="exportCSV()">${pro?"Export CSV":'<span class="lock">PRO</span> Export'}</button>
+      </div>
+      <div class="row" style="justify-content:space-between;margin-top:12px;border-top:1px dashed var(--line);padding-top:12px">
+        <div><b>Per-market response stats</b><div class="pro-note">See which markets reply fastest and where you've landed.</div></div>
+        <button class="btn ghost sm" onclick="showMarketStats()">${pro?"View stats":'<span class="lock">PRO</span> View'}</button>
+      </div>
+    </div>`;
+
+  app().innerHTML=h;
+}
+
+function renderNudge(){
+  if(!pro){
+    return `<div class="sec-head"><h2>Nudge list <span class="lock">PRO</span></h2><span class="c">submissions worth a follow-up</span></div>
+      <div class="card" style="padding:14px 16px">
+        <div class="row" style="justify-content:space-between">
+          <div>See everything pending longer than your threshold — the ones it's polite to nudge.</div>
+          <button class="btn sm" onclick="openLicense()">Unlock Pro</button>
+        </div>
+      </div>`;
+  }
+  const pend=allSubs().filter(s=>s.status==="Pending").map(s=>({s,d:pendingDays(s)})).filter(x=>x.d>=state.nudgeDays).sort((a,b)=>b.d-a.d);
+  let h=`<div class="sec-head"><h2>Nudge list</h2><span class="c">pending ≥ <input id="nudgeDays" type="number" min="1" value="${state.nudgeDays}" style="width:58px;display:inline-block;padding:3px 6px" onchange="setNudge(this.value)"> days</span></div>`;
+  if(!pend.length){
+    h+=`<div class="card empty" style="padding:22px">Nothing's overdue — every pending submission is younger than ${state.nudgeDays} days. 🌱</div>`;
+  } else {
+    h+=`<div class="card">`;
+    pend.forEach(x=>{
+      h+=`<div class="nudge"><span><b>${esc(x.s.market||"—")}</b> · ${esc(x.s._work.title)} <span class="tag">sent ${esc(x.s.date)}</span></span><span class="d">${x.d}d</span></div>`;
+    });
+    h+=`</div>`;
+  }
+  return h;
+}
+function setNudge(v){v=parseInt(v,10);if(v>0){state.nudgeDays=v;save();render();}}
+
+function renderWork(w){
+  const out=w.subs.filter(s=>s.status==="Pending").length;
+  const subs=w.subs.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  let h="";
+  h+=`<div class="crumb" onclick="goHome()">← Dashboard</div>`;
+  h+=`<div class="row" style="justify-content:space-between;align-items:flex-start">
+    <div>
+      <h1 class="page" style="margin-bottom:2px">${esc(w.title)}</h1>
+      <div class="meta" style="color:var(--muted);font-size:13px">${esc(w.type)}${w.words?" · "+Number(w.words).toLocaleString()+" words":""} · ${out} out of ${w.subs.length}</div>
+    </div>
+    <div class="row">
+      <button class="btn ghost sm" onclick="openWork('${w.id}')">Edit</button>
+      <button class="btn sm" onclick="openSub('${w.id}')">+ Submission</button>
+    </div>
+  </div>`;
+
+  h+=`<div class="sec-head"><h2>Submission history</h2><span class="c">${w.subs.length} total</span></div>`;
+  if(!w.subs.length){
+    h+=`<div class="card empty"><div class="big">📮</div><div>No submissions yet.</div><div style="margin-top:12px"><button class="btn" onclick="openSub('${w.id}')">Log a submission</button></div></div>`;
+  } else {
+    h+=`<div class="card">`;
+    subs.forEach(s=>{
+      const rd=respDays(s);
+      h+=`<div class="sub">
+        <div class="l1"><span class="mk">${esc(s.market||"—")}</span> <span class="badge b-${s.status}">${s.status}</span>${s.simul?'<span class="tag">simultaneous</span>':""}${s.fee?'<span class="tag">fee '+esc(s.fee)+'</span>':""}${s.rejType?'<span class="tag">'+esc(s.rejType)+'</span>':""}</div>
+        <div class="l2">
+          <span>Sent ${esc(s.date)}</span>
+          ${s.respDate?`<span>Replied ${esc(s.respDate)}</span>`:""}
+          ${rd!=null?`<span>${rd} day${rd===1?"":"s"} to reply</span>`:(s.status==="Pending"?`<span>${pendingDays(s)} days pending</span>`:"")}
+        </div>
+        ${s.note?`<div class="note">${esc(s.note)}</div>`:""}
+        <div class="acts">
+          ${s.status==="Pending"?`
+            <button class="btn sm" onclick="quickResp('${w.id}','${s.id}','Accepted')">Mark accepted</button>
+            <button class="btn ghost sm" onclick="quickResp('${w.id}','${s.id}','Rejected')">Mark rejected</button>
+            <button class="btn ghost sm" onclick="quickResp('${w.id}','${s.id}','Withdrawn')">Withdraw</button>
+          `:`<button class="btn ghost sm" onclick="reopen('${w.id}','${s.id}')">Reopen</button>`}
+          <button class="btn link" onclick="openSub('${w.id}','${s.id}')">Edit</button>
+          <button class="btn link" onclick="delSub('${w.id}','${s.id}')">Delete</button>
+        </div>
+      </div>`;
+    });
+    h+=`</div>`;
+  }
+  app().innerHTML=h;
+}
+
+function openWorkView(id){view={name:"work",workId:id};render();}
+
+/* ===================== Quick response ===================== */
+function quickResp(wid,sid,status){
+  const w=state.works.find(x=>x.id===wid);const s=w.subs.find(x=>x.id===sid);if(!s)return;
+  s.status=status;
+  if(status!=="Pending" && !s.respDate)s.respDate=today();
+  save();render();
+}
+function reopen(wid,sid){
+  const w=state.works.find(x=>x.id===wid);const s=w.subs.find(x=>x.id===sid);if(!s)return;
+  s.status="Pending"; s.respDate=""; save();render();
+}
+function delSub(wid,sid){
+  if(!confirm("Delete this submission?"))return;
+  const w=state.works.find(x=>x.id===wid);w.subs=w.subs.filter(x=>x.id!==sid);save();render();
+}
+
+/* ===================== Modals: work ===================== */
+function modal(html){
+  closeModal();
+  const bg=document.createElement("div");bg.className="modal-bg";bg.id="modalBg";
+  bg.innerHTML=`<div class="modal">${html}</div>`;
+  bg.addEventListener("mousedown",e=>{if(e.target===bg)closeModal();});
+  document.body.appendChild(bg);
+  return bg;
+}
+function closeModal(){const m=document.getElementById("modalBg");if(m)m.remove();}
+
+function openWork(id){
+  const w=id?state.works.find(x=>x.id===id):null;
+  const types=["Poem","Short story","Novel","Query","Essay"];
+  modal(`<h3>${w?"Edit work":"New work"}<button class="x" onclick="closeModal()">×</button></h3>
+    <div class="body">
+      <label>Title</label>
+      <input id="f_title" value="${w?esc(w.title):""}" placeholder="e.g. Aubade for the Last Bus" autofocus>
+      <div class="grid2">
+        <div><label>Type</label><select id="f_type">${types.map(t=>`<option ${w&&w.type===t?"selected":""}>${t}</option>`).join("")}</select></div>
+        <div><label>Word count (optional)</label><input id="f_words" type="number" min="0" value="${w&&w.words?w.words:""}" placeholder="e.g. 3200"></div>
+      </div>
+    </div>
+    <div class="foot">
+      ${w?`<button class="btn link" style="margin-right:auto" onclick="delWork('${w.id}')">Delete work</button>`:""}
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="saveWork('${w?w.id:""}')">Save</button>
+    </div>`);
+}
+function saveWork(id){
+  const title=document.getElementById("f_title").value.trim();
+  if(!title){alert("Give your work a title.");return;}
+  const type=document.getElementById("f_type").value;
+  const words=document.getElementById("f_words").value.trim();
+  if(id){
+    const w=state.works.find(x=>x.id===id);w.title=title;w.type=type;w.words=words;
+  } else {
+    state.works.push({id:uid(),title,type,words,created:Date.now(),subs:[]});
+  }
+  save();closeModal();render();
+}
+function delWork(id){
+  if(!confirm("Delete this work and all its submissions?"))return;
+  state.works=state.works.filter(x=>x.id!==id);save();closeModal();
+  if(view.workId===id)view={name:"home"};
+  render();
+}
+
+/* ===================== Modals: submission ===================== */
+function openSub(wid,sid){
+  const w=state.works.find(x=>x.id===wid);
+  const s=sid?w.subs.find(x=>x.id===sid):null;
+  const statuses=["Pending","Rejected","Accepted","Withdrawn"];
+  modal(`<h3>${s?"Edit submission":"New submission"} <span style="font-size:13px;color:var(--muted);font-weight:400">· ${esc(w.title)}</span><button class="x" onclick="closeModal()">×</button></h3>
+    <div class="body">
+      <label>Market / agent name</label>
+      <input id="s_market" value="${s?esc(s.market):""}" placeholder="e.g. Poetry Magazine, or Jane Agent / XYZ Lit" autofocus>
+      <div class="grid2">
+        <div><label>Date submitted</label><input id="s_date" type="date" value="${s?esc(s.date):today()}"></div>
+        <div><label>Status</label><select id="s_status" onchange="toggleResp()">${statuses.map(t=>`<option ${s&&s.status===t?"selected":""}>${t}</option>`).join("")}</select></div>
+      </div>
+      <div class="grid2">
+        <div><label>Response date</label><input id="s_resp" type="date" value="${s&&s.respDate?esc(s.respDate):""}"></div>
+        <div><label>Fee paid (optional)</label><input id="s_fee" value="${s&&s.fee?esc(s.fee):""}" placeholder="e.g. $3"></div>
+      </div>
+      <label>Rejection type (optional)</label>
+      <select id="s_rej">
+        <option value="">—</option>
+        <option ${s&&s.rejType==="Form rejection"?"selected":""}>Form rejection</option>
+        <option ${s&&s.rejType==="Personal rejection"?"selected":""}>Personal rejection</option>
+        <option ${s&&s.rejType==="Higher tier / encouraged"?"selected":""}>Higher tier / encouraged</option>
+      </select>
+      <label>Notes</label>
+      <textarea id="s_note" placeholder="Tier reached, who you queried, any feedback…">${s?esc(s.note):""}</textarea>
+      <div class="check"><input id="s_simul" type="checkbox" ${s&&s.simul?"checked":""}><label style="margin:0">Simultaneous submission (out to other markets too)</label></div>
+    </div>
+    <div class="foot">
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="saveSub('${wid}','${s?s.id:""}')">Save</button>
+    </div>`);
+  toggleResp();
+}
+function toggleResp(){
+  const st=document.getElementById("s_status").value;
+  const resp=document.getElementById("s_resp");
+  if((st==="Accepted"||st==="Rejected")&&!resp.value)resp.value=today();
+}
+function saveSub(wid,sid){
+  const w=state.works.find(x=>x.id===wid);
+  const market=document.getElementById("s_market").value.trim();
+  if(!market){alert("Enter the market or agent name.");return;}
+  const data={
+    market,
+    date:document.getElementById("s_date").value||today(),
+    status:document.getElementById("s_status").value,
+    respDate:document.getElementById("s_resp").value,
+    fee:document.getElementById("s_fee").value.trim(),
+    rejType:document.getElementById("s_rej").value,
+    note:document.getElementById("s_note").value.trim(),
+    simul:document.getElementById("s_simul").checked
+  };
+  if(data.status==="Pending")data.respDate="";
+  if(sid){Object.assign(w.subs.find(x=>x.id===sid),data);}
+  else{w.subs.push({id:uid(),...data});}
+  save();closeModal();render();
+}
+
+/* ===================== PRO: CSV export ===================== */
+function csvCell(v){v=v==null?"":String(v);if(/[",\n]/.test(v))v='"'+v.replace(/"/g,'""')+'"';return v;}
+function exportCSV(){
+  if(!pro)return openLicense();
+  const head=["Work title","Type","Word count","Market/Agent","Date submitted","Status","Response date","Days to respond","Simultaneous","Fee","Rejection type","Notes"];
+  const rows=[head];
+  state.works.forEach(w=>{
+    if(!w.subs.length){rows.push([w.title,w.type,w.words,"","","","","","","","",""]);return;}
+    w.subs.forEach(s=>{
+      const rd=respDays(s);
+      rows.push([w.title,w.type,w.words,s.market,s.date,s.status,s.respDate||"",rd==null?"":rd,s.simul?"yes":"no",s.fee||"",s.rejType||"",s.note||""]);
+    });
+  });
+  const csv=rows.map(r=>r.map(csvCell).join(",")).join("\r\n");
+  const blob=new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="sublog-export-"+today()+".csv";a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+
+/* ===================== PRO: market stats ===================== */
+function showMarketStats(){
+  if(!pro)return openLicense();
+  const m=marketStats();
+  let body;
+  if(!m.length){body=`<div class="empty" style="padding:20px">No submissions logged yet.</div>`;}
+  else{
+    body=`<div style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+      <tr style="text-align:left;color:var(--muted)"><th style="padding:6px 8px">Market / agent</th><th style="padding:6px 8px">Subs</th><th style="padding:6px 8px">Acc</th><th style="padding:6px 8px">Rej</th><th style="padding:6px 8px">Pend</th><th style="padding:6px 8px">Avg reply</th></tr>
+      ${m.map(e=>`<tr style="border-top:1px solid var(--line)">
+        <td style="padding:7px 8px"><b>${esc(e.name)}</b></td>
+        <td style="padding:7px 8px">${e.total}</td>
+        <td style="padding:7px 8px;color:var(--acc)">${e.accepted}</td>
+        <td style="padding:7px 8px;color:var(--rej)">${e.rejected}</td>
+        <td style="padding:7px 8px;color:var(--pend)">${e.pending}</td>
+        <td style="padding:7px 8px">${e.avg==null?"—":e.avg+"d"}</td>
+      </tr>`).join("")}
+    </table></div>`;
+  }
+  modal(`<h3>Per-market response stats<button class="x" onclick="closeModal()">×</button></h3>
+    <div class="body">${body}<div class="pro-note" style="margin-top:10px">Avg reply = average days to a Rejected/Accepted decision for that market.</div></div>
+    <div class="foot"><button class="btn" onclick="closeModal()">Done</button></div>`);
+}
+
+/* ===================== License modal ===================== */
+function openLicense(){
+  const f=`<ul class="feat">
+    <li>Export your whole submission log to CSV</li>
+    <li>Per-market response-time &amp; acceptance stats</li>
+    <li>“Nudge” list of submissions overdue past N days</li>
+    <li>One-time payment · works offline forever</li>
+  </ul>`;
+  const bg=document.createElement("div");bg.className="modal-bg";bg.id="licBg";
+  bg.innerHTML=`<div class="modal">
+    <h3>SubLog Pro — 9 USDC<button class="x" onclick="document.getElementById('licBg').remove()">×</button></h3>
+    <div class="body">
+      ${f}
+      <label>Pay ${PAY.price} ${PAY.token} on ${PAY.chain} to:</label>
+      <div class="copybar">
+        <input id="licWallet" class="mono" readonly value="${PAY.wallet}">
+        <button class="btn ghost sm" onclick="copyWallet()">Copy</button>
+      </div>
+      <div class="grid2">
+        <div><label>Your payment tx hash</label><input id="txh" placeholder="0x…" class="mono"></div>
+        <div><label>Email (for your records)</label><input id="email" type="email" placeholder="you@example.com"></div>
+      </div>
+      <div style="margin-top:14px"><button class="btn" onclick="requestKey()">Get my key</button></div>
+      <div class="pro-note">Open a GitHub issue with your tx hash — an automated bot verifies the payment on Base and replies with your license key, usually within a minute. Paste it below.</div>
+      <div id="licErr" class="msg-err"></div>
+      <div id="licOk" class="msg-ok"></div>
+      <details class="have">
+        <summary>Have a key?</summary>
+        <label>Paste your license key</label>
+        <textarea id="licKey" placeholder="eyJ….MEUC…"></textarea>
+        <div style="margin-top:8px"><button class="btn" onclick="activateKey()">Activate</button></div>
+      </details>
+    </div>
+  </div>`;
+  bg.addEventListener("mousedown",e=>{if(e.target===bg)bg.remove();});
+  document.body.appendChild(bg);
+}
+function copyWallet(){const i=document.getElementById("licWallet");i.select();try{navigator.clipboard.writeText(PAY.wallet);}catch(e){document.execCommand("copy");}const o=document.querySelector("#licOk");if(o){o.textContent="Wallet copied";setTimeout(()=>{if(o)o.textContent="";},1500);}}
+function requestKey(){
+  const tx=(document.getElementById("txh").value||"").trim();
+  const em=(document.getElementById("email").value||"").trim();
+  window.open(PAY.contact+"?title=SubLog%20Pro%20license%20request&body="+encodeURIComponent("Payment tx hash: "+tx+"\nEmail: "+em),"_blank");
+}
+function activateKey(){
+  const k=(document.getElementById("licKey").value||"").trim();
+  if(!k){document.querySelector("#licErr").textContent="Paste your key first.";return;}
+  applyLicense(k,false);
+}
+
+/* ===================== Boot ===================== */
+load();
+(async()=>{
+  const saved=localStorage.getItem("sublog_license");
+  if(saved)await applyLicense(saved,true);
+  render();
+})();
+</script>
+</body>
+</html>
