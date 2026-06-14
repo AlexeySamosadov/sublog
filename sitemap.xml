@@ -15,4 +15,29 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://alexeysamosadov.github.io/sublog/how-to-query-literary-agents.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://alexeysamosadov.github.io/sublog/how-many-agents-should-i-query.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://alexeysamosadov.github.io/sublog/simultaneous-submissions-explained.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://alexeysamosadov.github.io/sublog/how-long-do-literary-agents-take-to-respond.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://alexeysamosadov.github.io/sublog/how-to-track-query-submissions.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>
